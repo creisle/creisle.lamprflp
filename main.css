@@ -11,6 +11,8 @@
    -webkit-appearance: none;
 }
 
+
+
 button {
 	background-color:#ddd;
 	-moz-border-radius:28px;
@@ -22,7 +24,7 @@ button {
 	color:#000;
 	font-family:arial;
 	font-size:17px;
-	padding:16px 31px;
+	padding:10px 31px;
 	text-decoration:none;
 	text-shadow:0px 1px 0px #bbb;
 }
@@ -98,6 +100,7 @@ h1{
     font-style: normal;
 }
 
+/* note: only use this for results figure titles. will be removed with clear_results() */
 h2{
     font-size: 20px;
     font-family:Georgia, Times, serif;
@@ -109,7 +112,12 @@ select{
     display: inline;
 }
 
-
+/* LIST #1 ref: http://www.marcofolio.net/css/8_different_ways_to_beautifully_style_your_lists.html */
+#list1 { }
+#list1 ul { list-style:none; text-align:center; border-top:1px solid #eee; border-bottom:1px solid #eee; padding:10px 0; }
+#list1 ul li { display:inline; text-transform:uppercase; padding:0 10px; letter-spacing:10px; color: #000; }
+#list1 ul li a { text-decoration:none; color:#ddd; }
+#list1 ul li a:hover { text-decoration:underline; }
 
 /* LIST #2 ref: http://www.marcofolio.net/css/8_different_ways_to_beautifully_style_your_lists.html */
 #list2 { width:100%; }

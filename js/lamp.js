@@ -41,16 +41,17 @@ var increment;
 var h;
 var has_loop = false;
 
-var run = 0;
+var run = 0; //keeps track of how many times the routine has been run for labelled the figures
 
-//dragging functions
-//http://svg.dabbles.info/snaptut-drag.html
-//note that this will have to be edited to use on a group that does not contain a text element
+
+
+/*dragging functions: move, start, stop
+reference for dragging function: http://svg.dabbles.info/snaptut-drag.html
+note that this will have to be edited to use on a group that does not contain a text element*/
 var move = function(dx, dy, x, y){
     this.attr({ transform: this.data('origTransform') + (this.data('origTransform') ? "T" : "t") + [0, dy]});
     
     //code to deal with updating our bp label on the text element of our group
-   
     var original_y = this[0].node.attributes[1].value;
     var shift = this.matrix.f;
     var yy = parseFloat(original_y)+ parseFloat(shift);
@@ -68,13 +69,6 @@ var stop = function(){
 function strt(){
     run += 1;
     has_loop = false;
-    //get the primers and sequences
-    /*
-    var b1 = "GGAAAAACTGCCGTCTTCCCCG".toLowerCase();
-    var b2 = "GGAGAGATCGACGTGGTCC".toLowerCase();
-    var f1 = "CGGCAAACCGGGTCATCCAAAA".toLowerCase();
-    var f2 = "GAAGCCTCTTCGACTCCAATG".toLowerCase();
-    var linker = "TTTT".toLowerCase();*/
     var rxn = read_fasta();
     if (rxn==null){
 	return -1;
@@ -88,7 +82,6 @@ function strt(){
 	layout.push(item);
     }
     
-    //var sequence = "AAAGATGAATCGCGTCTACTTGTTGTCGCTGTTGGTGTCATTCGTCATCGCCGACCAGATCACTCCCCAGTTGAACAAGCCCATCTCCGGCGGCGAGTTCACTTTCTACGGAGCCTCGGGAAGAGGGGCTTGTGGTCTGGATGTGCAAAACTTGTCGGCCGCGGTGTCTGGAAGCCTCTTTGACTCCAATGGTCAATGGGTGCCCTCGAATCTGCCTGACGGAAGATACATTTTGGATGACCCGGTTTGCCGAGGCATCTGCGTCCAGATTGAGTACAAGGGAAAAACTGCCGTCTTCCCCGCCGACAACAAATGCCCCGAATGCGCTGTGGACCACGTCGATCTCTCCACGGACGCGTTCCTGATCCTGGAACCGGCCGGAGGAACCGTCGGAATCGCGAAGCCTGCCACCATCACGTATTTGTTCTGCAATCAAACCTCCGTCACCAGCGCCCCGAGCGCTGGCTCCAGCGCTAGTCCTAGTGCCAGCTCTACTGCTAGCCCTGCCAGCGGATGTTAAGACGGCAACAGAATCGAATT".toLowerCase();
     var result = idiot_proof_input(rxn.target, rxn);
     if (result===null){
 	return -1;
@@ -105,6 +98,18 @@ function strt(){
     var uncut = generate_uncut(products);
     draw_gel(rxn, layout, lanes, uncut);
     return 0;
+};
+
+
+function clear_results(){
+    elem = document.getElementsByTagName("svg");
+    while(elem.length > 0){
+        elem[0].parentNode.removeChild(elem[0]);
+    }
+    elem = document.getElementsByTagName("h2");
+    while(elem.length > 0){
+        elem[0].parentNode.removeChild(elem[0]);
+    }
 };
 
 function loop_amp(products, rxn){
