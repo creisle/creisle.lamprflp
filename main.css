@@ -1,0 +1,127 @@
+/* code for select box styling from http://bavotasan.com/2011/style-select-box-using-only-css/*/
+.styled-select select {
+   background: transparent;
+   width: 268px;
+   padding: 5px;
+   font-size: 16px;
+   line-height: 1;
+   border: 0;
+   border-radius: 10px;
+   height: 36px;
+   -webkit-appearance: none;
+}
+
+button {
+	background-color:#ddd;
+	-moz-border-radius:28px;
+	-webkit-border-radius:28px;
+	border-radius:28px;
+	border:1px solid #aaa;
+	display:inline-block;
+	cursor:pointer;
+	color:#000;
+	font-family:arial;
+	font-size:17px;
+	padding:16px 31px;
+	text-decoration:none;
+	text-shadow:0px 1px 0px #bbb;
+}
+
+.styled-select {
+   width: 240px;
+   height: 34px;
+   overflow: hidden;
+   background: #ddd;
+   border: 1px solid #ccc;
+   border-radius: 10px;
+}
+
+.style-div{
+    
+    font-family:Georgia, Times, serif;
+    font-size: 20px;
+}
+
+.phor{
+    display: inline-block;
+}
+
+.inlinediv{
+    display: inline-block;
+    text-align: center;
+}
+
+textarea{
+    background: #ddd;
+    width: 30%;
+    resize: none;
+    line-height: 130%;
+    font-size: 15px;
+}
+
+.styled-textarea{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 80%;
+    height: 120px;
+    display: block;
+    border: 3px solid #cccccc;
+    padding: 5px;
+    font-family: Tahoma, sans-serif;
+    background-position: bottom right;
+    background-repeat: no-repeat;
+}
+
+.primer-textarea{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    border: 3px solid #cccccc;
+    height: 20px;
+    padding: 5px;
+    font-family: Tahoma, sans-serif;
+    background-position: bottom right;
+    background-repeat: no-repeat;
+}
+
+p{
+    font-family:Georgia, Times, serif;
+    font-style: normal;
+    font-size: 14px;
+    padding: 10px;
+}
+
+h1{
+    font-size: 35px;
+    font-family:Georgia, Times, serif;
+    font-style: normal;
+}
+
+h2{
+    font-size: 20px;
+    font-family:Georgia, Times, serif;
+    font-style: normal;
+    
+}
+
+select{
+    display: inline;
+}
+
+
+
+/* LIST #2 ref: http://www.marcofolio.net/css/8_different_ways_to_beautifully_style_your_lists.html */
+#list2 { width:100%; }
+#list2 ol { font-style:italic; font-family:Georgia, Times, serif; font-size:24px; color:#bbb;  }
+#list2 ol li { }
+#list2 ol li p { padding:8px; font-style:normal; font-family:Arial; font-size:13px; color:#000; border-left: 1px solid #999; }
+#list2 ol li p em { display:block; font-family: Georgia, Times, serif; font-size: 20px; font-style: normal;}
+
+/* LIST #3 ref: http://www.marcofolio.net/css/8_different_ways_to_beautifully_style_your_lists.html */
+#list3 { width:100%; }
+#list3 ul { font-style:italic; font-family:Georgia, Times, serif; font-size:24px; color:#ddd; list-style-type: none; }
+#list3 ul li { padding-bottom: 10px;}
+#list3 ul li p { display: inline; padding-right: 8px; font-style:normal; font-family:Arial; font-size:13px; color:#aaa; }
+#list3 ul li p em { display: inline; font-size: 20px; font-family:Georgia, Times, serif; font-style: normal;}
+#list3 ul li div {display: inline;}
