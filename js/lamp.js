@@ -35,36 +35,10 @@ if (!('trim' in String.prototype)) {
 //var primer = "taccga";
 var cent_ladder = [1517, 1200, 1000, 900, 800, 700, 600, 517, 500, 400, 300, 200, 100];
 var fifty_ladder = [1350, 916, 766, 700, 650, 600, 550, 500, 450, 400, 350, 300, 250, 200, 150, 100, 50];
-var max;
-var min;
-var increment;
-var h;
+
 var has_loop = false;
 
 var run = 0; //keeps track of how many times the routine has been run for labelled the figures
-
-
-
-/*dragging functions: move, start, stop
-reference for dragging function: http://svg.dabbles.info/snaptut-drag.html
-note that this will have to be edited to use on a group that does not contain a text element*/
-var move = function(dx, dy, x, y){
-    this.attr({ transform: this.data('origTransform') + (this.data('origTransform') ? "T" : "t") + [0, dy]});
-    
-    //code to deal with updating our bp label on the text element of our group
-    var original_y = this[0].node.attributes[1].value;
-    var shift = this.matrix.f;
-    var yy = parseFloat(original_y)+ parseFloat(shift);
-    yy = Math.pow(10, (h-yy)/increment+min); // (h - y)/increment = Math.log(lanes[i][j])/Math.LN10 - min;
-    this[1].node.textContent = yy.toFixed(2) +" bp";
-}
-var start = function(){
-    console.log("started dragging");
-    this.data('origTransform', this.transform().local);
-}
-var stop = function(){
-    console.log("finished dragging");
-}
 
 function strt(){
     run += 1;
@@ -357,10 +331,10 @@ function find_cut_sites(products, layout){
 
 function draw_gel(rxn, layout, lanes, uncut){
     var w = window.innerWidth;
-    h = window.innerHeight;
-    max = Math.log(Math.max.apply(Math, uncut))/Math.LN10+0.25; //maximum log value
+    var h = window.innerHeight;
+    var max = Math.log(Math.max.apply(Math, uncut))/Math.LN10+0.25; //maximum log value
     
-    min = Math.log(100)/Math.LN10;
+    var min = Math.log(100)/Math.LN10;
     for(var i=0; i<lanes.length; i++){
 	var temp = Math.log(Math.min.apply(Math, lanes[i]))/Math.LN10;
 	if (temp<min) {
@@ -368,7 +342,7 @@ function draw_gel(rxn, layout, lanes, uncut){
 	}
     }
     min -= 0.5;
-    increment = h/(max-min); //intervals
+    var increment = h/(max-min); //intervals
     var paper = new Snap(w, h);
     paper.rect(0, 0, w-15, h).attr({"stroke-width": 2, fill: "white", stroke: "black"}); //create border for snap space
     
@@ -397,6 +371,28 @@ function draw_gel(rxn, layout, lanes, uncut){
     measure.add(paper.rect(10,ybp100, lane_width*lanes.length+offset-10, 2).attr({fill: "blue", stroke: "blue", "stroke-opacity": 0, "fill-opacity": 0.5, "stroke-width": 4}));
     var label = paper.text(offset+lane_width*lanes.length, ybp100+5, "100.00 bp");
     measure.add(label);
+    
+    /*dragging functions: move, start, stop
+    reference for dragging function: http://svg.dabbles.info/snaptut-drag.html
+    note that this will have to be edited to use on a group that does not contain a text element*/
+    var move = function(dx, dy, x, y){
+	this.attr({ transform: this.data('origTransform') + (this.data('origTransform') ? "T" : "t") + [0, dy]});
+	
+	//code to deal with updating our bp label on the text element of our group
+	var original_y = this[0].node.attributes[1].value;
+	var shift = this.matrix.f;
+	var yy = parseFloat(original_y)+ parseFloat(shift);
+	yy = Math.pow(10, (h-yy)/increment+min); // (h - y)/increment = Math.log(lanes[i][j])/Math.LN10 - min;
+	this[1].node.textContent = yy.toFixed(2) +" bp";
+    }
+    var start = function(){
+	console.log("started dragging");
+	this.data('origTransform', this.transform().local);
+    }
+    var stop = function(){
+	console.log("finished dragging");
+    }
+	
     measure.drag(move, start, stop);
     
     var figure_title = document.createElement('h2');
