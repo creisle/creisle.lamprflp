@@ -1,17 +1,15 @@
 /*jslint browser:false, sub: true*/
 /*globals Snap,alert,window,document,mina,renLib*/
 
-//==== EVERYTHING LOWER CASE ====// convert at start
-
-//take in the sequences
-
-//generate the reverse complement - COMPLETE
-//align the primers - COMPLETE
-//create the building blocks - COMPLETE
-//amplify the sequence - COMPLETE
-//cut the sequence - IN PROGRESS
-//output the cuts
-//draw the output
+/******************************************************************************************************************
+ *
+ * Program: script for LAMP RFLP web tool
+ * Author: Caralyn Reisle
+ * Last Update: 2014-March-25
+ *
+ * purpose: given lamp primers and a target sequence, predict fragment patterns for a given set of restriction enzymes
+ *
+ ******************************************************************************************************************/
 
 //primer BIP = b1c-linker-b2
 //primer FIP = f1c-linker-f2
