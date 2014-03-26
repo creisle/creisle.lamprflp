@@ -40,6 +40,14 @@ var has_loop = false;
 
 var run = 0; //keeps track of how many times the routine has been run for labelled the figures
 
+/*****************************************************************
+*
+* function: strt()
+* purpose: this is where the script begins
+* input: none
+* output: returns -1 if an error occurred. otherwise returns 0
+*
+*****************************************************************/
 function strt(){
     run += 1;
     has_loop = false;
@@ -74,7 +82,14 @@ function strt(){
     return 0;
 };
 
-
+/*****************************************************************
+*
+* function: clear_results()
+* purpose: removes all the current snap "pages" from the web page
+* input: none
+* output: none
+*
+*****************************************************************/
 function clear_results(){
     elem = document.getElementsByTagName("svg");
     while(elem.length > 0){
@@ -86,6 +101,17 @@ function clear_results(){
     }
 };
 
+/*****************************************************************
+*
+* function: loop_amp()
+* purpose: amplifies the products using the loop primers, adds the
+* 	new products to the current list of products
+* input:
+* 	products: the list of products generated from the base lamp primers b1, b2, f2 and f2
+* 	rxn: the primers and sequence, i.e. the user input stored in a rxn object
+* output: returns the new list of products
+*
+*****************************************************************/
 function loop_amp(products, rxn){
     var result = [];
     result.concat(products);
@@ -125,6 +151,15 @@ function loop_amp(products, rxn){
     return result;
 };
 
+/*****************************************************************
+*
+* function: read_fasta()
+* purpose: splits the user input based on regular expressions to recognize fasta formatted text
+* 	puts the split components into the rxn object. checks that the minimum elements have been added
+* input: none
+* output: the rxn object that stores the primers and target sequence information
+*
+*****************************************************************/
 function read_fasta(){
     var fst = document.getElementById("fasta").value;
     var re = /\s*>\s*.*[\n\r]\s*[\w\s]*/gi;
@@ -175,6 +210,25 @@ function read_fasta(){
     return rxn;
 }
 
+/*****************************************************************
+*
+* function: idiot_proof_input()
+* purpose: aligns the primers and then makes sure they were entered in the
+* 	correct order/orientation and that the rxn components will permit a lamp reaction.
+* 	if the best matches of the primers do not correspond to the correct positioning for a lamp reaction
+* 	then this will return null
+* input:
+* 	str: the target sequence
+* 	primers: the rxn object that stores the rxn information, primers etc
+* 	
+* output:
+* 	null if the rxn will not permit a lamp of the target
+* 	else an array containing {str, matches, primers}
+* 		str:  being the rxn target (may have been updated)
+* 		matches being the computed alignment positions (the first index in the target where each primer would anneal)
+* 		primers: the list of primers (may have been updated)
+*
+*****************************************************************/
 function idiot_proof_input(str, primers){
     var b2 = align_primer(str, primers.b2);
     var f2 = align_primer(str, primers.f2);
@@ -238,6 +292,20 @@ function idiot_proof_input(str, primers){
     
 };
 
+/*****************************************************************
+*
+* function: create_blocks()
+* purpose: creates the lamp reaction building blocks using the previously found
+* 	alignment positions of the primers and the pre-defined template take from
+* 	the notomoi et al (2000) paper
+* input:
+* 	str: the target sequence
+* 	primers: the rxn object that stores the rxn information, primers etc
+* 	matches: the computed alignment index positions on the target sequence for each primer
+* output:
+* 	the building blocks of the lamp reaction
+*
+*****************************************************************/
 function create_blocks(str, matches, primers){
     var blocks = {};
     blocks.bplus = primers.b1+primers.linker+primers.b2+str.substring(matches.b2.index+primers.b2.length, matches.b1.index+primers.b1.length);
@@ -249,6 +317,16 @@ function create_blocks(str, matches, primers){
     return blocks;
 };
 
+/*****************************************************************
+*
+* function: amplify_blocks()
+* purpose: concatanates the building bloacks in a pre-defined pattern to predict the lamp products
+* input:
+* 	b: the lamp reaction building blocks
+* output:
+* 	the products of the lamp reaction
+*
+*****************************************************************/
 function amplify_blocks(b){
     products = [];
     var temp = b.bplus+b.plus+b.fplus; //6
@@ -277,6 +355,17 @@ function amplify_blocks(b){
     return products;
 };
 
+/*****************************************************************
+*
+* function: generate_uncut()
+* purpose: when a restriction enzyme does not have any cut sites on the products,
+* 	this gives the lengths of the uncut fragments since that is what we will see in the gel if the product is undigested
+* input:
+* 	products: the lamp reaction products
+* output:
+* 	the lengths of the fragments of these products
+*
+*****************************************************************/
 function generate_uncut(products){
     var uncut = [];
     for(var i=0; i<products.length; i++){
@@ -285,8 +374,18 @@ function generate_uncut(products){
     return uncut;
 }
 
-//input: computed products
-//input: relist, list of the rens you wish to compute fragments for
+/*****************************************************************
+*
+* function: find_cut_sites()
+* purpose: looks for cut site matches for a list of restriction enzymes and generates the fragment lengths where found
+* input:
+* 	products: the lamp reaction products
+* 	layout: from the user input, the list of what will be in each "lane" of the gel
+* output:
+* 	the fragments that will be in each lane in order of the output gel
+* 	note that this can contain ladders and uncut products as well as digested products
+*
+*****************************************************************/
 function find_cut_sites(products, layout){
     var uncut = generate_uncut(products);
     var lanes = []
@@ -298,13 +397,13 @@ function find_cut_sites(products, layout){
 		var temp = cent_ladder.concat(cent_ladder);
 		temp = temp.concat(temp);
 		lanes.push(temp);
-		layout[i] = "Ladder";
+		layout[i] = "L: 100bp";
 		break;
 	    case "50 bp ladder":
 		var temp = fifty_ladder.concat(fifty_ladder);
 		temp = temp.concat(temp);
 		lanes.push(temp);
-		layout[i] = "ladder";
+		layout[i] = "L: 50bp";
 		break;
 	    case "None":
 		lanes.push(uncut);
@@ -329,6 +428,19 @@ function find_cut_sites(products, layout){
     return lanes;
 };
 
+/*****************************************************************
+*
+* function: draw_gel()
+* purpose: generates the GUI output of the digestion reactions
+* input:
+* 	lanes: the fragments in each lane
+* 	layout: from the user input, the list of what will be in each "lane" of the gel
+* 	rxn: the reaction information, used for labelling the gel/GUI output
+* 	uncut: list of uncut products so we can find max values
+* output:
+* 	outputs the predicted "gel"/GUI output to the webpage
+*
+*****************************************************************/
 function draw_gel(rxn, layout, lanes, uncut){
     var w = window.innerWidth;
     var h = window.innerHeight;
@@ -400,6 +512,17 @@ function draw_gel(rxn, layout, lanes, uncut){
     document.body.appendChild(figure_title);
 }
 
+/*****************************************************************
+*
+* function: ren_palindrome()
+* purpose: checks if the REN we are looking at has a reverse palindrome so we
+* 	know if we need to check the reverse compliment of the cut site or not
+* input:
+* 	ren: the restriction enzym
+* output:
+* 	returns null if it is not a reverse comp palindrome, otherwise returns a new ren with the new revcomp cutsite
+*
+*****************************************************************/
 //find if its a palindrome, if not return a reverse comp version
 function ren_palindrome(ren){
     var site = rev_comp(ren.cutsite);
@@ -411,6 +534,17 @@ function ren_palindrome(ren){
     return result;
 };
 
+/*****************************************************************
+*
+* function: cut_products()
+* purpose: splits the products by ren cut sites
+* input:
+* 	ren: the restriction enzym
+* 	products: the products from the lamp reaction
+* output:
+* 	returns null if there are no matching cut sites found, else returns the fragments
+*
+*****************************************************************/
 function cut_products(products, ren){
     var re = generate_regex(ren);
     var fragments = [];
@@ -440,6 +574,16 @@ function cut_products(products, ren){
     return fragments;
 };
 
+/*****************************************************************
+*
+* function: remove_duplicates()
+* purpose: removes duplicate elements from an array of integers
+* input:
+* 	arr: the array we wish to remove duplicates from
+* output:
+* 	returns the sorted array of distinct elements
+*
+*****************************************************************/
 function remove_duplicates(arr){
     var result = [];
     arr.sort();
@@ -454,6 +598,16 @@ function remove_duplicates(arr){
     return result;
 };
 
+/*****************************************************************
+*
+* function: generate_regex()
+* purpose: generats a regular expression for a restriction enzyme cutsite
+* input:
+* 	ren: the restriction enzyme
+* output:
+* 	returns the regular expression for this ren
+*
+*****************************************************************/
 function generate_regex(ren){
     var temp = ren.cutsite.toLowerCase();
     var reg = [];
@@ -499,6 +653,18 @@ function generate_regex(ren){
     return re;
 };
 
+/*****************************************************************
+*
+* function: align_primer()
+* purpose: find the best alignment position for an primer on a target
+* input:
+* 	str; the target string
+* 	prm: the primer string (prm.length<str.length)
+* output:
+* 	returns a match object with the index position and whether or not
+* 	the best match was found with the original primer string or the reverse complement
+*
+*****************************************************************/
 function align_primer(str, prm){
     var revcomp = rev_comp(prm, true);
     var minscore = prm.length; //min number of differences btwn primer and sequence
@@ -527,6 +693,17 @@ function align_primer(str, prm){
     return {index: index, reverse: reverse};
 };
 
+/*****************************************************************
+*
+* function: rev_comp()
+* purpose: generate the reverse compliment or just compliment of a sequence
+* input:
+* 	str: the target string
+* 	rev: boolean, if true: will generate revcomp, if false: will just generate the compliment
+* output:
+* 	returns the compliment or reverse compliment of the input str depending on the boolean rev parameter
+*
+*****************************************************************/
 function rev_comp(str, rev){
     if (str==null) {
 	return null
@@ -583,6 +760,16 @@ function rev_comp(str, rev){
     return result.join("");
 };
 
+/*****************************************************************
+*
+* function: get_ren()
+* purpose: get the information for a given Restriction enzyme (ren)
+* input:
+* 	name: the name of the ren
+* output:
+* 	returns the values associated with that ren, i.e. cutsite, cutindex, etc
+*
+*****************************************************************/
 function get_ren(name){
 	for(var i=0; i<renlib.length; i++){
 		if(renlib[i].name.toLowerCase()==name.toLowerCase()){
