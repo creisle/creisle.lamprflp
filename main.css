@@ -48,6 +48,8 @@ button {
 
 .inlinediv{
     display: inline;
+    padding-left: 60px;
+    
 }
 
 textarea{
@@ -89,6 +91,7 @@ p{
     font-style: normal;
     font-size: 14px;
     padding: 10px;
+    padding-left: 20px;
 }
 
 h1{
@@ -102,7 +105,16 @@ h2{
     font-size: 20px;
     font-family:Georgia, Times, serif;
     font-style: normal;
+    padding-left: 20px;
     
+}
+
+h3{
+   text-align: right;
+   font-size: 16px;
+   font-family:Georgia, Times, serif;
+   font-style: normal;
+   padding-right: 20px;
 }
 
 select{
@@ -117,7 +129,7 @@ select{
 #list1 ul li a:hover { text-decoration:underline; }
 
 /* LIST #2 ref: http://www.marcofolio.net/css/8_different_ways_to_beautifully_style_your_lists.html */
-#list2 { width:100%; }
+#list2 { width:100%;  padding-left: 20px;}
 #list2 ol { font-style:italic; font-family:Georgia, Times, serif; font-size:24px; color:#bbb;  }
 #list2 ol li { }
 #list2 ol li p { padding:8px; font-style:normal; font-family:Arial; font-size:13px; color:#000; border-left: 1px solid #999; }
