@@ -11,8 +11,17 @@
    -webkit-appearance: none;
 }
 
+body {
+    padding-left: 20px;
+    padding-right: 20px;
+}
 
-
+img {
+    margin-left: auto;
+    margin-right: auto;
+    align: middle;
+    display: block;
+}
 button {
 	background-color:#ddd;
 	-moz-border-radius:5px;
@@ -49,7 +58,7 @@ button {
 .inlinediv{
     display: inline;
     padding-left: 60px;
-    
+
 }
 
 textarea{
@@ -105,8 +114,7 @@ h2{
     font-size: 20px;
     font-family:Georgia, Times, serif;
     font-style: normal;
-    padding-left: 20px;
-    
+
 }
 
 h3{
@@ -114,7 +122,6 @@ h3{
    font-size: 16px;
    font-family:Georgia, Times, serif;
    font-style: normal;
-   padding-right: 20px;
 }
 
 select{

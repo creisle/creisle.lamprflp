@@ -97,6 +97,7 @@ function clear_results(){
     while(elem.length > 0){
         elem[0].parentNode.removeChild(elem[0]);
     }
+    run = 0;
 };
 
 /*****************************************************************
@@ -118,33 +119,32 @@ function loop_amp(products, rxn){
 	    var temp = align_primer(products[i], rxn.lf);
 	    var len = products[i].length;
 	    if(temp.reverse==true){
-		var p = products[i].substring(0, temp.index-1)+rxn.lf;
-		result.push(p);
-	    }else{
-		var st = temp.index+rxn.lf.length;
-		if (st<len-1) {
-		    var p = rev_comp(rxn.lf)+products[i].substring(st);
+		    var p = products[i].substring(0, temp.index-1)+rxn.lf;
 		    result.push(p);
-		}
-		
+	    }else{
+		    var st = temp.index+rxn.lf.length;
+		    if (st<len-1) {
+		        var p = rev_comp(rxn.lf)+products[i].substring(st);
+		        result.push(p);
+		    }
 	    }
 	}
 	
     }
     if(rxn.lb==null||rxn.lb.length!=0){
-	for(var i=0; i<products.length; i++){
-	    var temp = align_primer(products[i], rxn.lb);
-	    if(temp.reverse==true){
-		var p = products[i].substring(0, temp.index-1)+rxn.lb;
-		result.push(p);
-	    }else{
-		var st = temp.index+rxn.lb.length;
-		if (st<len-1){
-		    var p = rev_comp(rxn.lb)+products[i].substring(st);
-		    result.push(p);
-		}
+	    for(var i=0; i<products.length; i++){
+	        var temp = align_primer(products[i], rxn.lb);
+	        if(temp.reverse==true){
+	    	    var p = products[i].substring(0, temp.index-1)+rxn.lb;
+	    	    result.push(p);
+	        }else{
+	    	    var st = temp.index+rxn.lb.length;
+	    	    if (st<len-1){
+	    	        var p = rev_comp(rxn.lb)+products[i].substring(st);
+	    	        result.push(p);
+	    	    }
+	        }
 	    }
-	}
     }
     return result;
 };
@@ -164,46 +164,46 @@ function read_fasta(){
     var matches = fst.match(re);
     var rxn = {b2: "", b1: "", f1: "", f2: "", lf: "", lb: "", target: "", target_name: "", linker: "tttt"};
     for(var i=0 ; i<matches.length; i++){
-	//get he tag name
-	var name = /\s*>\s*.*[\n\r]\s*/gi
-	var id = name.exec(matches[i]);
-	var split_point = id.index + id[0].length;
-	var tag = id[0].trim(); tag = tag.substring(1).toLowerCase();
-	var seq = matches[i].substring(split_point).trim().replace(/\s+/g, '').toLowerCase();;
-	
-	switch(tag){
-	    case "b1":
-		rxn.b1 = seq;
-		break;
-	    case "b2":
-		rxn.b2 = seq;
-		break
-	    case "f1":
-		rxn.f1 = seq;
-		break;
-	    case "f2":
-		rxn.f2 = seq;
-		break;
-	    case "lf":
-		rxn.lf = seq;
-		has_loop = true;
-		break;
-	    case "lb":
-		rxn.lb = seq;
-		has_loop = true;
-		break;
-	    case "linker":
-		rxn.linker = seq;
-		break;
-	    default:
-		rxn.target = seq;
-		rxn.target_name = tag;
-		break;
-	}
+	    //get the tag name
+	    var name = /\s*>\s*.*[\n\r]\s*/gi
+	    var id = name.exec(matches[i]);
+	    var split_point = id.index + id[0].length;
+	    var tag = id[0].trim(); tag = tag.substring(1).toLowerCase();
+	    var seq = matches[i].substring(split_point).trim().replace(/\s+/g, '').toLowerCase();
+	    
+	    switch(tag){
+	        case "b1":
+	    	    rxn.b1 = seq;
+	    	    break;
+	        case "b2":
+	    	    rxn.b2 = seq;
+	    	    break
+	        case "f1":
+	    	    rxn.f1 = seq;
+	    	    break;
+	        case "f2":
+	    	    rxn.f2 = seq;
+	    	    break;
+	        case "lf":
+	    	    rxn.lf = seq;
+	    	    has_loop = true;
+	    	    break;
+	        case "lb":
+	    	    rxn.lb = seq;
+	    	    has_loop = true;
+	    	    break;
+	        case "linker":
+	    	    rxn.linker = seq;
+	    	    break;
+	        default:
+	    	    rxn.target = seq;
+	    	    rxn.target_name = tag;
+	    	    break;
+	    }
     }
     if (rxn.b2==""||rxn.b1==""||rxn.f1==""||rxn.f2==""||rxn.target=="") {
-	console.log("error. base components required for reaction. b1, b2, f1, f2 primers and a single target");
-	return null;
+	    console.log("error. base components required for reaction. b1, b2, f1, f2 primers and a single target");
+	    return null;
     }
     return rxn;
 }
@@ -259,6 +259,7 @@ function idiot_proof_input(str, primers){
     var temp = str.substring(b2.index+primers.b2.length, f2.index);
     if(temp.length<primers.b1.length){
         console.log("error in the primer input. please check the provided sequences");
+        alert("error in the primer input. primers do not align to the target in the expected format. please check the provided sequences");
         return null;
     }
     var b1 = align_primer(temp, primers.b1);
@@ -266,6 +267,7 @@ function idiot_proof_input(str, primers){
     temp = str.substring(b1.index+primers.b1.length, f2.index);
     if(temp.length<primers.b1.length){
         console.log("error in the primer input. please check the provided sequences");
+        alert("error in the primer input. primers do not align to the target in the expected format. please check the provided sequences");
         return null;
     }
     var f1 = align_primer(temp, primers.f1);
@@ -367,7 +369,7 @@ function amplify_blocks(b){
 function generate_uncut(products){
     var uncut = [];
     for(var i=0; i<products.length; i++){
-	uncut.push(products[i].length);
+	    uncut.push(products[i].length);
     }
     return uncut;
 }
@@ -390,39 +392,38 @@ function find_cut_sites(products, layout){
     for(var i=0; i<layout.length; i++){
         var fragments;
         var temp;
-	switch(layout[i]){
-	    case "100 bp ladder":
-		var temp = cent_ladder.concat(cent_ladder);
-		temp = temp.concat(temp);
-		lanes.push(temp);
-		layout[i] = "L: 100bp";
-		break;
-	    case "50 bp ladder":
-		var temp = fifty_ladder.concat(fifty_ladder);
-		temp = temp.concat(temp);
-		lanes.push(temp);
-		layout[i] = "L: 50bp";
-		break;
-	    case "None":
-		lanes.push(uncut);
-		break;
-	    default:
-		var ren = get_ren(layout[i]);
-		if((temp=ren_palindrome(ren))===null){
-		    fragments = cut_products(products, ren);
-		}else{
-		    fragments = cut_products(products, ren);
-		    fragments.concat(cut_products(products, temp));
-		}
-		if(fragments.length==0){
-		    lanes.push(uncut);
-		}else{
-		    lanes.push(fragments);
-		}
-		break;
-	}
+	    switch(layout[i]){
+	        case "100 bp ladder":
+	    	    var temp = cent_ladder.concat(cent_ladder);
+	    	    temp = temp.concat(temp);
+	    	    lanes.push(temp);
+	    	    layout[i] = "L: 100bp";
+	    	    break;
+	        case "50 bp ladder":
+	    	    var temp = fifty_ladder.concat(fifty_ladder);
+	    	    temp = temp.concat(temp);
+	    	    lanes.push(temp);
+	    	    layout[i] = "L: 50bp";
+	    	    break;
+	        case "None":
+	    	    lanes.push(uncut);
+	    	    break;
+	        default:
+	    	    var ren = get_ren(layout[i]);
+	    	    if((temp=ren_palindrome(ren))===null){
+	    	        fragments = cut_products(products, ren);
+	    	    }else{
+	    	        fragments = cut_products(products, ren);
+	    	        fragments.concat(cut_products(products, temp));
+	    	    }
+	    	    if(fragments.length==0){
+	    	        lanes.push(uncut);
+	    	    }else{
+	    	        lanes.push(fragments);
+	        	}
+	    	    break;
+	    }
     }
-    
     return lanes;
 };
 
@@ -446,10 +447,10 @@ function draw_gel(rxn, layout, lanes, uncut){
     
     var min = Math.log(100)/Math.LN10;
     for(var i=0; i<lanes.length; i++){
-	var temp = Math.log(Math.min.apply(Math, lanes[i]))/Math.LN10;
-	if (temp<min) {
-	    min = temp;
-	}
+	    var temp = Math.log(Math.min.apply(Math, lanes[i]))/Math.LN10;
+	    if (temp<min) {
+	        min = temp;
+	    }
     }
     min -= 0.5;
     var increment = h/(max-min); //intervals
@@ -459,18 +460,18 @@ function draw_gel(rxn, layout, lanes, uncut){
     var lane_width = w/(lanes.length+2.5); //two for spacing
     var offset = (lane_width*2)/(lanes.length); //spacing between lanes
     for(var i=0; i<lanes.length; i++){
-	var x = offset+lane_width*i;
-	for(var j=0; j<lanes[i].length; j++){
-	    var y = h - (Math.log(lanes[i][j])/Math.LN10 - min)*increment;
-	    //draw a rectangle
-	    var opaq = (lanes[i][j]/1000)*1;
-	    if (opaq>1) {
-		opaq = 1;
+	    var x = offset+lane_width*i;
+	    for(var j=0; j<lanes[i].length; j++){
+	        var y = h - (Math.log(lanes[i][j])/Math.LN10 - min)*increment;
+	        //draw a rectangle
+	        var opaq = (lanes[i][j]/1000)*1;
+	        if (opaq>1) {
+		        opaq = 1;
+	        }
+	        paper.rect(x, y, lane_width, 1).attr({"stroke-opacity": opaq, "fill-opacity": opaq}); //
 	    }
-	    paper.rect(x, y, lane_width, 1).attr({"stroke-opacity": opaq, "fill-opacity": opaq}); //
-	}
-	paper.text(x+lane_width/2, (max-min)*increment-15, layout[i]).attr("text-anchor", "middle");
-	offset += lane_width/lanes.length;
+	    paper.text(x+lane_width/2, (max-min)*increment-15, layout[i]).attr("text-anchor", "middle");
+	    offset += lane_width/lanes.length;
     }
     
     //draw the dragable line...
@@ -486,21 +487,21 @@ function draw_gel(rxn, layout, lanes, uncut){
     reference for dragging function: http://svg.dabbles.info/snaptut-drag.html
     note that this will have to be edited to use on a group that does not contain a text element*/
     var move = function(dx, dy, x, y){
-	this.attr({ transform: this.data('origTransform') + (this.data('origTransform') ? "T" : "t") + [0, dy]});
+	    this.attr({ transform: this.data('origTransform') + (this.data('origTransform') ? "T" : "t") + [0, dy]});
 	
-	//code to deal with updating our bp label on the text element of our group
-	var original_y = this[0].node.attributes[1].value;
-	var shift = this.matrix.f;
-	var yy = parseFloat(original_y)+ parseFloat(shift);
-	yy = Math.pow(10, (h-yy)/increment+min); // (h - y)/increment = Math.log(lanes[i][j])/Math.LN10 - min;
-	this[1].node.textContent = yy.toFixed(2) +" bp";
+	    //code to deal with updating our bp label on the text element of our group
+	    var original_y = this[0].node.attributes[1].value;
+	    var shift = this.matrix.f;
+	    var yy = parseFloat(original_y)+ parseFloat(shift);
+	    yy = Math.pow(10, (h-yy)/increment+min); // (h - y)/increment = Math.log(lanes[i][j])/Math.LN10 - min;
+	    this[1].node.textContent = yy.toFixed(2) +" bp";
     }
     var start = function(){
-	console.log("started dragging");
-	this.data('origTransform', this.transform().local);
+	    console.log("started dragging");
+	    this.data('origTransform', this.transform().local);
     }
     var stop = function(){
-	console.log("finished dragging");
+	    console.log("finished dragging");
     }
 	
     measure.drag(move, start, stop);
@@ -556,7 +557,7 @@ function cut_products(products, ren){
         }
         var prev = 0;
 	    if(indicies.length==0){
-		fragments.push(products[i].length);
+		    fragments.push(products[i].length);
 	    }
         for(var j=0; j<indicies.length; j++){
             var f = indicies[j]+ren.cutindex-prev;
@@ -704,7 +705,7 @@ function align_primer(str, prm){
 *****************************************************************/
 function rev_comp(str, rev){
     if (str==null) {
-	return null
+	    return null
     }
     str = str.toLowerCase();
     var result = [];
@@ -726,30 +727,30 @@ function rev_comp(str, rev){
             case 'a':
                 result.push('t');
                 break;
-	    case 'r': //a, g --> t, c
-		result.push('y');
-	        break;
-	    case 'y': //c, t --> g, a
-		result.push('r');
-	        break;
-	    case 'k': //g, t --> c, a
-		result.push('m');
-	        break;
-	    case 'm': //a, c --> t, g
-		result.push('k');
-	        break;
-	    case 'b': //c, g, t --> g, c, a
-		result.push('v');
-	        break;	
-	    case 'd': //a, g, t --> t, c, a
-		result.push('h');
-	        break;
-	    case 'h': //a, c, t --> t, g, a
-		result.push('d');
-	        break;
-	    case 'v': //a, c, g --> t, g, c
-		result.push('b');
-	        break;
+	        case 'r': //a, g --> t, c
+		    	result.push('y');
+	            break;
+	        case 'y': //c, t --> g, a
+		    	result.push('r');
+	            break;
+	        case 'k': //g, t --> c, a
+		    	result.push('m');
+	            break;
+	        case 'm': //a, c --> t, g
+		    	result.push('k');
+	            break;
+	        case 'b': //c, g, t --> g, c, a
+		    	result.push('v');
+	            break;	
+	        case 'd': //a, g, t --> t, c, a
+		    	result.push('h');
+	            break;
+	        case 'h': //a, c, t --> t, g, a
+		    	result.push('d');
+	            break;
+	        case 'v': //a, c, g --> t, g, c
+		    	result.push('b');
+	            break;
             default: //s, w, n
                 result.push(str.charAt(i));
                 break;
