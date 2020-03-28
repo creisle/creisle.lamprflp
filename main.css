@@ -11,20 +11,31 @@
    -webkit-appearance: none;
 }
 
+body {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+img {
+    margin-left: auto;
+    margin-right: auto;
+    align: middle;
+    display: block;
+}
 button {
 	background-color:#ddd;
-	-moz-border-radius:28px;
-	-webkit-border-radius:28px;
-	border-radius:28px;
+	-moz-border-radius:5px;
+	-webkit-border-radius:5px;
+	border-radius:5px;
 	border:1px solid #aaa;
-	display:inline-block;
+	display:inline;
 	cursor:pointer;
 	color:#000;
 	font-family:arial;
 	font-size:17px;
-	padding:16px 31px;
+	padding:10px 31px;
 	text-decoration:none;
-	text-shadow:0px 1px 0px #bbb;
+	text-shadow:0px 1px 0px #aaa;
 }
 
 .styled-select {
@@ -33,11 +44,9 @@ button {
    overflow: hidden;
    background: #ddd;
    border: 1px solid #ccc;
-   border-radius: 10px;
 }
 
 .style-div{
-    
     font-family:Georgia, Times, serif;
     font-size: 20px;
 }
@@ -47,8 +56,9 @@ button {
 }
 
 .inlinediv{
-    display: inline-block;
-    text-align: center;
+    display: inline;
+    padding-left: 60px;
+
 }
 
 textarea{
@@ -90,6 +100,7 @@ p{
     font-style: normal;
     font-size: 14px;
     padding: 10px;
+    padding-left: 20px;
 }
 
 h1{
@@ -98,21 +109,34 @@ h1{
     font-style: normal;
 }
 
+/* note: only use this for results figure titles. will be removed with clear_results() */
 h2{
     font-size: 20px;
     font-family:Georgia, Times, serif;
     font-style: normal;
-    
+
+}
+
+h3{
+   text-align: right;
+   font-size: 16px;
+   font-family:Georgia, Times, serif;
+   font-style: normal;
 }
 
 select{
     display: inline;
 }
 
-
+/* LIST #1 ref: http://www.marcofolio.net/css/8_different_ways_to_beautifully_style_your_lists.html */
+#list1 { }
+#list1 ul { list-style:none; text-align:center; border-top:1px solid #eee; border-bottom:1px solid #eee; padding:10px 0; }
+#list1 ul li { display:inline; text-transform:uppercase; padding:0 10px; letter-spacing:10px; color: #000; }
+#list1 ul li a { text-decoration:none; color:#ddd; }
+#list1 ul li a:hover { text-decoration:underline; }
 
 /* LIST #2 ref: http://www.marcofolio.net/css/8_different_ways_to_beautifully_style_your_lists.html */
-#list2 { width:100%; }
+#list2 { width:100%;  padding-left: 20px;}
 #list2 ol { font-style:italic; font-family:Georgia, Times, serif; font-size:24px; color:#bbb;  }
 #list2 ol li { }
 #list2 ol li p { padding:8px; font-style:normal; font-family:Arial; font-size:13px; color:#000; border-left: 1px solid #999; }

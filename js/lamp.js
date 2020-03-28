@@ -1,17 +1,15 @@
 /*jslint browser:false, sub: true*/
 /*globals Snap,alert,window,document,mina,renLib*/
 
-//==== EVERYTHING LOWER CASE ====// convert at start
-
-//take in the sequences
-
-//generate the reverse complement - COMPLETE
-//align the primers - COMPLETE
-//create the building blocks - COMPLETE
-//amplify the sequence - COMPLETE
-//cut the sequence - IN PROGRESS
-//output the cuts
-//draw the output
+/******************************************************************************************************************
+ *
+ * Program: script for LAMP RFLP web tool
+ * Author: Caralyn Reisle
+ * Last Update: 2014-March-25
+ *
+ * purpose: given lamp primers and a target sequence, predict fragment patterns for a given set of restriction enzymes
+ *
+ ******************************************************************************************************************/
 
 //primer BIP = b1c-linker-b2
 //primer FIP = f1c-linker-f2
@@ -35,46 +33,22 @@ if (!('trim' in String.prototype)) {
 //var primer = "taccga";
 var cent_ladder = [1517, 1200, 1000, 900, 800, 700, 600, 517, 500, 400, 300, 200, 100];
 var fifty_ladder = [1350, 916, 766, 700, 650, 600, 550, 500, 450, 400, 350, 300, 250, 200, 150, 100, 50];
-var max;
-var min;
-var increment;
-var h;
+
 var has_loop = false;
 
-var run = 0;
+var run = 0; //keeps track of how many times the routine has been run for labelled the figures
 
-//dragging functions
-//http://svg.dabbles.info/snaptut-drag.html
-//note that this will have to be edited to use on a group that does not contain a text element
-var move = function(dx, dy, x, y){
-    this.attr({ transform: this.data('origTransform') + (this.data('origTransform') ? "T" : "t") + [0, dy]});
-    
-    //code to deal with updating our bp label on the text element of our group
-   
-    var original_y = this[0].node.attributes[1].value;
-    var shift = this.matrix.f;
-    var yy = parseFloat(original_y)+ parseFloat(shift);
-    yy = Math.pow(10, (h-yy)/increment+min); // (h - y)/increment = Math.log(lanes[i][j])/Math.LN10 - min;
-    this[1].node.textContent = yy.toFixed(2) +" bp";
-}
-var start = function(){
-    console.log("started dragging");
-    this.data('origTransform', this.transform().local);
-}
-var stop = function(){
-    console.log("finished dragging");
-}
-
+/*****************************************************************
+*
+* function: strt()
+* purpose: this is where the script begins
+* input: none
+* output: returns -1 if an error occurred. otherwise returns 0
+*
+*****************************************************************/
 function strt(){
     run += 1;
     has_loop = false;
-    //get the primers and sequences
-    /*
-    var b1 = "GGAAAAACTGCCGTCTTCCCCG".toLowerCase();
-    var b2 = "GGAGAGATCGACGTGGTCC".toLowerCase();
-    var f1 = "CGGCAAACCGGGTCATCCAAAA".toLowerCase();
-    var f2 = "GAAGCCTCTTCGACTCCAATG".toLowerCase();
-    var linker = "TTTT".toLowerCase();*/
     var rxn = read_fasta();
     if (rxn==null){
 	return -1;
@@ -88,7 +62,6 @@ function strt(){
 	layout.push(item);
     }
     
-    //var sequence = "AAAGATGAATCGCGTCTACTTGTTGTCGCTGTTGGTGTCATTCGTCATCGCCGACCAGATCACTCCCCAGTTGAACAAGCCCATCTCCGGCGGCGAGTTCACTTTCTACGGAGCCTCGGGAAGAGGGGCTTGTGGTCTGGATGTGCAAAACTTGTCGGCCGCGGTGTCTGGAAGCCTCTTTGACTCCAATGGTCAATGGGTGCCCTCGAATCTGCCTGACGGAAGATACATTTTGGATGACCCGGTTTGCCGAGGCATCTGCGTCCAGATTGAGTACAAGGGAAAAACTGCCGTCTTCCCCGCCGACAACAAATGCCCCGAATGCGCTGTGGACCACGTCGATCTCTCCACGGACGCGTTCCTGATCCTGGAACCGGCCGGAGGAACCGTCGGAATCGCGAAGCCTGCCACCATCACGTATTTGTTCTGCAATCAAACCTCCGTCACCAGCGCCCCGAGCGCTGGCTCCAGCGCTAGTCCTAGTGCCAGCTCTACTGCTAGCCCTGCCAGCGGATGTTAAGACGGCAACAGAATCGAATT".toLowerCase();
     var result = idiot_proof_input(rxn.target, rxn);
     if (result===null){
 	return -1;
@@ -107,6 +80,37 @@ function strt(){
     return 0;
 };
 
+/*****************************************************************
+*
+* function: clear_results()
+* purpose: removes all the current snap "pages" from the web page
+* input: none
+* output: none
+*
+*****************************************************************/
+function clear_results(){
+    elem = document.getElementsByTagName("svg");
+    while(elem.length > 0){
+        elem[0].parentNode.removeChild(elem[0]);
+    }
+    elem = document.getElementsByTagName("h2");
+    while(elem.length > 0){
+        elem[0].parentNode.removeChild(elem[0]);
+    }
+    run = 0;
+};
+
+/*****************************************************************
+*
+* function: loop_amp()
+* purpose: amplifies the products using the loop primers, adds the
+* 	new products to the current list of products
+* input:
+* 	products: the list of products generated from the base lamp primers b1, b2, f2 and f2
+* 	rxn: the primers and sequence, i.e. the user input stored in a rxn object
+* output: returns the new list of products
+*
+*****************************************************************/
 function loop_amp(products, rxn){
     var result = [];
     result.concat(products);
@@ -115,87 +119,114 @@ function loop_amp(products, rxn){
 	    var temp = align_primer(products[i], rxn.lf);
 	    var len = products[i].length;
 	    if(temp.reverse==true){
-		var p = products[i].substring(0, temp.index-1)+rxn.lf;
-		result.push(p);
-	    }else{
-		var st = temp.index+rxn.lf.length;
-		if (st<len-1) {
-		    var p = rev_comp(rxn.lf)+products[i].substring(st);
+		    var p = products[i].substring(0, temp.index-1)+rxn.lf;
 		    result.push(p);
-		}
-		
+	    }else{
+		    var st = temp.index+rxn.lf.length;
+		    if (st<len-1) {
+		        var p = rev_comp(rxn.lf)+products[i].substring(st);
+		        result.push(p);
+		    }
 	    }
 	}
 	
     }
     if(rxn.lb==null||rxn.lb.length!=0){
-	for(var i=0; i<products.length; i++){
-	    var temp = align_primer(products[i], rxn.lb);
-	    if(temp.reverse==true){
-		var p = products[i].substring(0, temp.index-1)+rxn.lb;
-		result.push(p);
-	    }else{
-		var st = temp.index+rxn.lb.length;
-		if (st<len-1){
-		    var p = rev_comp(rxn.lb)+products[i].substring(st);
-		    result.push(p);
-		}
+	    for(var i=0; i<products.length; i++){
+	        var temp = align_primer(products[i], rxn.lb);
+	        if(temp.reverse==true){
+	    	    var p = products[i].substring(0, temp.index-1)+rxn.lb;
+	    	    result.push(p);
+	        }else{
+	    	    var st = temp.index+rxn.lb.length;
+	    	    if (st<len-1){
+	    	        var p = rev_comp(rxn.lb)+products[i].substring(st);
+	    	        result.push(p);
+	    	    }
+	        }
 	    }
-	}
     }
     return result;
 };
 
+/*****************************************************************
+*
+* function: read_fasta()
+* purpose: splits the user input based on regular expressions to recognize fasta formatted text
+* 	puts the split components into the rxn object. checks that the minimum elements have been added
+* input: none
+* output: the rxn object that stores the primers and target sequence information
+*
+*****************************************************************/
 function read_fasta(){
     var fst = document.getElementById("fasta").value;
     var re = /\s*>\s*.*[\n\r]\s*[\w\s]*/gi;
     var matches = fst.match(re);
     var rxn = {b2: "", b1: "", f1: "", f2: "", lf: "", lb: "", target: "", target_name: "", linker: "tttt"};
     for(var i=0 ; i<matches.length; i++){
-	//get he tag name
-	var name = /\s*>\s*.*[\n\r]\s*/gi
-	var id = name.exec(matches[i]);
-	var split_point = id.index + id[0].length;
-	var tag = id[0].trim(); tag = tag.substring(1).toLowerCase();
-	var seq = matches[i].substring(split_point).trim().replace(/\s+/g, '').toLowerCase();;
-	
-	switch(tag){
-	    case "b1":
-		rxn.b1 = seq;
-		break;
-	    case "b2":
-		rxn.b2 = seq;
-		break
-	    case "f1":
-		rxn.f1 = seq;
-		break;
-	    case "f2":
-		rxn.f2 = seq;
-		break;
-	    case "lf":
-		rxn.lf = seq;
-		has_loop = true;
-		break;
-	    case "lb":
-		rxn.lb = seq;
-		has_loop = true;
-		break;
-	    case "linker":
-		rxn.linker = seq;
-		break;
-	    default:
-		rxn.target = seq;
-		rxn.target_name = tag;
-		break;
-	}
+	    //get the tag name
+	    var name = /\s*>\s*.*[\n\r]\s*/gi
+	    var id = name.exec(matches[i]);
+	    var split_point = id.index + id[0].length;
+	    var tag = id[0].trim(); tag = tag.substring(1).toLowerCase();
+	    var seq = matches[i].substring(split_point).trim().replace(/\s+/g, '').toLowerCase();
+	    
+	    switch(tag){
+	        case "b1":
+	    	    rxn.b1 = seq;
+	    	    break;
+	        case "b2":
+	    	    rxn.b2 = seq;
+	    	    break
+	        case "f1":
+	    	    rxn.f1 = seq;
+	    	    break;
+	        case "f2":
+	    	    rxn.f2 = seq;
+	    	    break;
+	        case "lf":
+	    	    rxn.lf = seq;
+	    	    has_loop = true;
+	    	    break;
+	        case "lb":
+	    	    rxn.lb = seq;
+	    	    has_loop = true;
+	    	    break;
+	        case "linker":
+	    	    rxn.linker = seq;
+	    	    break;
+	        default:
+	    	    rxn.target = seq;
+	    	    rxn.target_name = tag;
+	    	    break;
+	    }
     }
     if (rxn.b2==""||rxn.b1==""||rxn.f1==""||rxn.f2==""||rxn.target=="") {
-	console.log("error. base components required for reaction. b1, b2, f1, f2 primers and a single target");
-	return null;
+	    console.log("error. base components required for reaction. b1, b2, f1, f2 primers and a single target");
+	    return null;
     }
     return rxn;
 }
 
+/*****************************************************************
+*
+* function: idiot_proof_input()
+* purpose: aligns the primers and then makes sure they were entered in the
+* 	correct order/orientation and that the rxn components will permit a lamp reaction.
+* 	if the best matches of the primers do not correspond to the correct positioning for a lamp reaction
+* 	then this will return null
+* input:
+* 	str: the target sequence
+* 	primers: the rxn object that stores the rxn information, primers etc
+* 	
+* output:
+* 	null if the rxn will not permit a lamp of the target
+* 	else an array containing {str, matches, primers}
+* 		str:  being the rxn target (may have been updated)
+* 		matches being the computed alignment positions (the first index in the target where each primer would anneal)
+* 		primers: the list of primers (may have been updated)
+*
+*****************************************************************/
 function idiot_proof_input(str, primers){
     var b2 = align_primer(str, primers.b2);
     var f2 = align_primer(str, primers.f2);
@@ -228,6 +259,7 @@ function idiot_proof_input(str, primers){
     var temp = str.substring(b2.index+primers.b2.length, f2.index);
     if(temp.length<primers.b1.length){
         console.log("error in the primer input. please check the provided sequences");
+        alert("error in the primer input. primers do not align to the target in the expected format. please check the provided sequences");
         return null;
     }
     var b1 = align_primer(temp, primers.b1);
@@ -235,6 +267,7 @@ function idiot_proof_input(str, primers){
     temp = str.substring(b1.index+primers.b1.length, f2.index);
     if(temp.length<primers.b1.length){
         console.log("error in the primer input. please check the provided sequences");
+        alert("error in the primer input. primers do not align to the target in the expected format. please check the provided sequences");
         return null;
     }
     var f1 = align_primer(temp, primers.f1);
@@ -259,6 +292,20 @@ function idiot_proof_input(str, primers){
     
 };
 
+/*****************************************************************
+*
+* function: create_blocks()
+* purpose: creates the lamp reaction building blocks using the previously found
+* 	alignment positions of the primers and the pre-defined template take from
+* 	the notomoi et al (2000) paper
+* input:
+* 	str: the target sequence
+* 	primers: the rxn object that stores the rxn information, primers etc
+* 	matches: the computed alignment index positions on the target sequence for each primer
+* output:
+* 	the building blocks of the lamp reaction
+*
+*****************************************************************/
 function create_blocks(str, matches, primers){
     var blocks = {};
     blocks.bplus = primers.b1+primers.linker+primers.b2+str.substring(matches.b2.index+primers.b2.length, matches.b1.index+primers.b1.length);
@@ -270,6 +317,16 @@ function create_blocks(str, matches, primers){
     return blocks;
 };
 
+/*****************************************************************
+*
+* function: amplify_blocks()
+* purpose: concatanates the building bloacks in a pre-defined pattern to predict the lamp products
+* input:
+* 	b: the lamp reaction building blocks
+* output:
+* 	the products of the lamp reaction
+*
+*****************************************************************/
 function amplify_blocks(b){
     products = [];
     var temp = b.bplus+b.plus+b.fplus; //6
@@ -298,90 +355,123 @@ function amplify_blocks(b){
     return products;
 };
 
+/*****************************************************************
+*
+* function: generate_uncut()
+* purpose: when a restriction enzyme does not have any cut sites on the products,
+* 	this gives the lengths of the uncut fragments since that is what we will see in the gel if the product is undigested
+* input:
+* 	products: the lamp reaction products
+* output:
+* 	the lengths of the fragments of these products
+*
+*****************************************************************/
 function generate_uncut(products){
     var uncut = [];
     for(var i=0; i<products.length; i++){
-	uncut.push(products[i].length);
+	    uncut.push(products[i].length);
     }
     return uncut;
 }
 
-//input: computed products
-//input: relist, list of the rens you wish to compute fragments for
+/*****************************************************************
+*
+* function: find_cut_sites()
+* purpose: looks for cut site matches for a list of restriction enzymes and generates the fragment lengths where found
+* input:
+* 	products: the lamp reaction products
+* 	layout: from the user input, the list of what will be in each "lane" of the gel
+* output:
+* 	the fragments that will be in each lane in order of the output gel
+* 	note that this can contain ladders and uncut products as well as digested products
+*
+*****************************************************************/
 function find_cut_sites(products, layout){
     var uncut = generate_uncut(products);
     var lanes = []
     for(var i=0; i<layout.length; i++){
         var fragments;
         var temp;
-	switch(layout[i]){
-	    case "100 bp ladder":
-		var temp = cent_ladder.concat(cent_ladder);
-		temp = temp.concat(temp);
-		lanes.push(temp);
-		layout[i] = "Ladder";
-		break;
-	    case "50 bp ladder":
-		var temp = fifty_ladder.concat(fifty_ladder);
-		temp = temp.concat(temp);
-		lanes.push(temp);
-		layout[i] = "ladder";
-		break;
-	    case "None":
-		lanes.push(uncut);
-		break;
-	    default:
-		var ren = get_ren(layout[i]);
-		if((temp=ren_palindrome(ren))===null){
-		    fragments = cut_products(products, ren);
-		}else{
-		    fragments = cut_products(products, ren);
-		    fragments.concat(cut_products(products, temp));
-		}
-		if(fragments.length==0){
-		    lanes.push(uncut);
-		}else{
-		    lanes.push(fragments);
-		}
-		break;
-	}
+	    switch(layout[i]){
+	        case "100 bp ladder":
+	    	    var temp = cent_ladder.concat(cent_ladder);
+	    	    temp = temp.concat(temp);
+	    	    lanes.push(temp);
+	    	    layout[i] = "L: 100bp";
+	    	    break;
+	        case "50 bp ladder":
+	    	    var temp = fifty_ladder.concat(fifty_ladder);
+	    	    temp = temp.concat(temp);
+	    	    lanes.push(temp);
+	    	    layout[i] = "L: 50bp";
+	    	    break;
+	        case "None":
+	    	    lanes.push(uncut);
+	    	    break;
+	        default:
+	    	    var ren = get_ren(layout[i]);
+	    	    if((temp=ren_palindrome(ren))===null){
+	    	        fragments = cut_products(products, ren);
+	    	    }else{
+	    	        fragments = cut_products(products, ren);
+	    	        fragments.concat(cut_products(products, temp));
+	    	    }
+	    	    if(fragments.length==0){
+	    	        lanes.push(uncut);
+	    	    }else{
+	    	        lanes.push(fragments);
+	        	}
+	    	    break;
+	    }
     }
-    
     return lanes;
 };
 
+/*****************************************************************
+*
+* function: draw_gel()
+* purpose: generates the GUI output of the digestion reactions
+* input:
+* 	lanes: the fragments in each lane
+* 	layout: from the user input, the list of what will be in each "lane" of the gel
+* 	rxn: the reaction information, used for labelling the gel/GUI output
+* 	uncut: list of uncut products so we can find max values
+* output:
+* 	outputs the predicted "gel"/GUI output to the webpage
+*
+*****************************************************************/
 function draw_gel(rxn, layout, lanes, uncut){
     var w = window.innerWidth;
-    h = window.innerHeight;
-    max = Math.log(Math.max.apply(Math, uncut))/Math.LN10+0.25; //maximum log value
+    var h = window.innerHeight;
+    var max = Math.log(Math.max.apply(Math, uncut))/Math.LN10+0.25; //maximum log value
     
-    min = Math.log(100)/Math.LN10;
+    var min = Math.log(100)/Math.LN10;
     for(var i=0; i<lanes.length; i++){
-	var temp = Math.log(Math.min.apply(Math, lanes[i]))/Math.LN10;
-	if (temp<min) {
-	    min = temp;
-	}
+	    var temp = Math.log(Math.min.apply(Math, lanes[i]))/Math.LN10;
+	    if (temp<min) {
+	        min = temp;
+	    }
     }
     min -= 0.5;
-    increment = h/(max-min); //intervals
+    var increment = h/(max-min); //intervals
     var paper = new Snap(w, h);
     paper.rect(0, 0, w-15, h).attr({"stroke-width": 2, fill: "white", stroke: "black"}); //create border for snap space
     
     var lane_width = w/(lanes.length+2.5); //two for spacing
     var offset = (lane_width*2)/(lanes.length); //spacing between lanes
     for(var i=0; i<lanes.length; i++){
-	var x = offset+lane_width*i;
-	for(var j=0; j<lanes[i].length; j++){
-	    var y = h - (Math.log(lanes[i][j])/Math.LN10 - min)*increment;
-	    //draw a rectangle
-	    var opaq = (lanes[i][j]/1000)*1;
-	    if (opaq>1) {
-		opaq = 1;
+	    var x = offset+lane_width*i;
+	    for(var j=0; j<lanes[i].length; j++){
+	        var y = h - (Math.log(lanes[i][j])/Math.LN10 - min)*increment;
+	        //draw a rectangle
+	        var opaq = (lanes[i][j]/1000)*1;
+	        if (opaq>1) {
+		        opaq = 1;
+	        }
+	        paper.rect(x, y, lane_width, 1).attr({"stroke-opacity": opaq, "fill-opacity": opaq}); //
 	    }
-	    paper.rect(x, y, lane_width, 1).attr({"stroke-opacity": opaq, "fill-opacity": opaq}); //
-	}
-	paper.text(x+lane_width/2, (max-min)*increment-15, layout[i]).attr("text-anchor", "middle");
-	offset += lane_width/lanes.length;
+	    paper.text(x+lane_width/2, (max-min)*increment-15, layout[i]).attr("text-anchor", "middle");
+	    offset += lane_width/lanes.length;
     }
     
     //draw the dragable line...
@@ -392,6 +482,28 @@ function draw_gel(rxn, layout, lanes, uncut){
     measure.add(paper.rect(10,ybp100, lane_width*lanes.length+offset-10, 2).attr({fill: "blue", stroke: "blue", "stroke-opacity": 0, "fill-opacity": 0.5, "stroke-width": 4}));
     var label = paper.text(offset+lane_width*lanes.length, ybp100+5, "100.00 bp");
     measure.add(label);
+    
+    /*dragging functions: move, start, stop
+    reference for dragging function: http://svg.dabbles.info/snaptut-drag.html
+    note that this will have to be edited to use on a group that does not contain a text element*/
+    var move = function(dx, dy, x, y){
+	    this.attr({ transform: this.data('origTransform') + (this.data('origTransform') ? "T" : "t") + [0, dy]});
+	
+	    //code to deal with updating our bp label on the text element of our group
+	    var original_y = this[0].node.attributes[1].value;
+	    var shift = this.matrix.f;
+	    var yy = parseFloat(original_y)+ parseFloat(shift);
+	    yy = Math.pow(10, (h-yy)/increment+min); // (h - y)/increment = Math.log(lanes[i][j])/Math.LN10 - min;
+	    this[1].node.textContent = yy.toFixed(2) +" bp";
+    }
+    var start = function(){
+	    console.log("started dragging");
+	    this.data('origTransform', this.transform().local);
+    }
+    var stop = function(){
+	    console.log("finished dragging");
+    }
+	
     measure.drag(move, start, stop);
     
     var figure_title = document.createElement('h2');
@@ -399,6 +511,17 @@ function draw_gel(rxn, layout, lanes, uncut){
     document.body.appendChild(figure_title);
 }
 
+/*****************************************************************
+*
+* function: ren_palindrome()
+* purpose: checks if the REN we are looking at has a reverse palindrome so we
+* 	know if we need to check the reverse compliment of the cut site or not
+* input:
+* 	ren: the restriction enzym
+* output:
+* 	returns null if it is not a reverse comp palindrome, otherwise returns a new ren with the new revcomp cutsite
+*
+*****************************************************************/
 //find if its a palindrome, if not return a reverse comp version
 function ren_palindrome(ren){
     var site = rev_comp(ren.cutsite);
@@ -410,6 +533,17 @@ function ren_palindrome(ren){
     return result;
 };
 
+/*****************************************************************
+*
+* function: cut_products()
+* purpose: splits the products by ren cut sites
+* input:
+* 	ren: the restriction enzym
+* 	products: the products from the lamp reaction
+* output:
+* 	returns null if there are no matching cut sites found, else returns the fragments
+*
+*****************************************************************/
 function cut_products(products, ren){
     var re = generate_regex(ren);
     var fragments = [];
@@ -423,7 +557,7 @@ function cut_products(products, ren){
         }
         var prev = 0;
 	    if(indicies.length==0){
-		fragments.push(products[i].length);
+		    fragments.push(products[i].length);
 	    }
         for(var j=0; j<indicies.length; j++){
             var f = indicies[j]+ren.cutindex-prev;
@@ -439,6 +573,16 @@ function cut_products(products, ren){
     return fragments;
 };
 
+/*****************************************************************
+*
+* function: remove_duplicates()
+* purpose: removes duplicate elements from an array of integers
+* input:
+* 	arr: the array we wish to remove duplicates from
+* output:
+* 	returns the sorted array of distinct elements
+*
+*****************************************************************/
 function remove_duplicates(arr){
     var result = [];
     arr.sort();
@@ -453,6 +597,16 @@ function remove_duplicates(arr){
     return result;
 };
 
+/*****************************************************************
+*
+* function: generate_regex()
+* purpose: generats a regular expression for a restriction enzyme cutsite
+* input:
+* 	ren: the restriction enzyme
+* output:
+* 	returns the regular expression for this ren
+*
+*****************************************************************/
 function generate_regex(ren){
     var temp = ren.cutsite.toLowerCase();
     var reg = [];
@@ -498,6 +652,18 @@ function generate_regex(ren){
     return re;
 };
 
+/*****************************************************************
+*
+* function: align_primer()
+* purpose: find the best alignment position for an primer on a target
+* input:
+* 	str; the target string
+* 	prm: the primer string (prm.length<str.length)
+* output:
+* 	returns a match object with the index position and whether or not
+* 	the best match was found with the original primer string or the reverse complement
+*
+*****************************************************************/
 function align_primer(str, prm){
     var revcomp = rev_comp(prm, true);
     var minscore = prm.length; //min number of differences btwn primer and sequence
@@ -526,9 +692,20 @@ function align_primer(str, prm){
     return {index: index, reverse: reverse};
 };
 
+/*****************************************************************
+*
+* function: rev_comp()
+* purpose: generate the reverse compliment or just compliment of a sequence
+* input:
+* 	str: the target string
+* 	rev: boolean, if true: will generate revcomp, if false: will just generate the compliment
+* output:
+* 	returns the compliment or reverse compliment of the input str depending on the boolean rev parameter
+*
+*****************************************************************/
 function rev_comp(str, rev){
     if (str==null) {
-	return null
+	    return null
     }
     str = str.toLowerCase();
     var result = [];
@@ -550,30 +727,30 @@ function rev_comp(str, rev){
             case 'a':
                 result.push('t');
                 break;
-	    case 'r': //a, g --> t, c
-		result.push('y');
-	        break;
-	    case 'y': //c, t --> g, a
-		result.push('r');
-	        break;
-	    case 'k': //g, t --> c, a
-		result.push('m');
-	        break;
-	    case 'm': //a, c --> t, g
-		result.push('k');
-	        break;
-	    case 'b': //c, g, t --> g, c, a
-		result.push('v');
-	        break;	
-	    case 'd': //a, g, t --> t, c, a
-		result.push('h');
-	        break;
-	    case 'h': //a, c, t --> t, g, a
-		result.push('d');
-	        break;
-	    case 'v': //a, c, g --> t, g, c
-		result.push('b');
-	        break;
+	        case 'r': //a, g --> t, c
+		    	result.push('y');
+	            break;
+	        case 'y': //c, t --> g, a
+		    	result.push('r');
+	            break;
+	        case 'k': //g, t --> c, a
+		    	result.push('m');
+	            break;
+	        case 'm': //a, c --> t, g
+		    	result.push('k');
+	            break;
+	        case 'b': //c, g, t --> g, c, a
+		    	result.push('v');
+	            break;	
+	        case 'd': //a, g, t --> t, c, a
+		    	result.push('h');
+	            break;
+	        case 'h': //a, c, t --> t, g, a
+		    	result.push('d');
+	            break;
+	        case 'v': //a, c, g --> t, g, c
+		    	result.push('b');
+	            break;
             default: //s, w, n
                 result.push(str.charAt(i));
                 break;
@@ -582,6 +759,16 @@ function rev_comp(str, rev){
     return result.join("");
 };
 
+/*****************************************************************
+*
+* function: get_ren()
+* purpose: get the information for a given Restriction enzyme (ren)
+* input:
+* 	name: the name of the ren
+* output:
+* 	returns the values associated with that ren, i.e. cutsite, cutindex, etc
+*
+*****************************************************************/
 function get_ren(name){
 	for(var i=0; i<renlib.length; i++){
 		if(renlib[i].name.toLowerCase()==name.toLowerCase()){
